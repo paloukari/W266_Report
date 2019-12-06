@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage[toc,page]{appendix}
 
 \usepackage{arxiv}
 \usepackage{graphicx}
@@ -85,7 +86,7 @@ purple ComputedFrom edges.\cite{1711.00740}.}
 Semantic code search is the task of retrieving relevant code given a natural language query. While related to other information retrieval tasks, it requires bridging the gap between the language used in code, often abbreviated and highly technical, and natural language more suitable to describe vague concepts and ideas.
 The CodeSearchNet Challenge consists of 99 natural language queries with about 4k expert relevance annotations of likely results from CodeSearchNet Corpus. The corpus contains about 6 million functions from open-source code spanning six programming languages (Go, Java, JavaScript, PHP, Python, and Ruby). The CodeSearchNet Corpus also contains automatically generated query-like natural language for 2 million functions, obtained from mechanically scraping and preprocessing associated function documentation \cite{1909.09436}. 
 
-Although the CodeSearchNet Corpus spans six different languages, this paper focuses only on the Python part, mainly because transforming each language code samples to graphs requires language-specific graph generators. For the Python Corpus, an existing open source Python 3 graph generator from \cite{1811.01824} was reused and customized. Approximately $0.1\%$ of the original Python Corpus samples was removed because of syntactic errors, most probably written in Python 2. Based on baseline experiments run before and after the data reduction, the effect in the baseline accuracy was negligible.
+Although the CodeSearchNet Corpus spans six different languages, this paper focuses only on the Python part, mainly because transforming each language code samples to graphs requires language-specific graph generators. For the Python Corpus, an existing open source Python 3 graph generator from \url{https://github.com/CoderPat/structured-neural-summarization/tree/master/parsers/sourcecode/barone} \cite{1811.01824} was reused and customized. Approximately $0.1\%$ of the original Python Corpus samples was removed because of syntactic errors, most probably written in Python 2. Based on baseline experiments run before and after the data reduction, the effect in the baseline accuracy was negligible.
 
 \section{CodeSearchNet baseline models}
 
@@ -114,7 +115,7 @@ The natural language tokens are split using byte-pair encoding (BPE)~\cite{gage1
     \item[Conv-Self-Att] a 1D-CNN+Self-Attention Hybrid.
 \end{description}
 
-The token embeddings are then combined into a sequence embedding using an attention-like weighted sum mechanism. The dimensionality of the embedding space to \textbf{128}.
+The token embeddings are then combined into a sequence embedding using an attention-like weighted sum mechanism, with the final dimensionality of the embedding space set to \textbf{128}.
 Given a set of $N$ pairs $(snippet_i, doc_i)$ of code and natural language descriptions, a code encoder $E_c$ and a query encoder $E_q$, the loss is defined as 
 
 \begin{align*}
@@ -135,32 +136,10 @@ These architectures are:
 \begin{description}
     \item[Gated Graph Neural Networks] (GGNN)~\cite{1511.05493}.
     \item[Relational Graph Convolutional Networks] (RGCN)~\cite{1703.06103}.
-    \item[Relational Graph Attention Networks] (RGAT) a generalisation of Graph Attention Networks~\cite{1710.10903} to several edge types.
+    \item[Relational Graph Attention Networks] (RGAT) a generalization of Graph Attention Networks~\cite{1710.10903} to several edge types.
     \item[Graph Neural Network with Edge MLPs] (GNN-Edge-MLP) a variant of RGCN in which messages on edges are computed using full MLPs, not just a single layer.
     \item[Graph Neural Networks with Feature-wise Linear Modulation] (GNN-FiLM) a new extension of RGCN with FiLM layers~\cite{1709.07871}.
 \end{description}
-
-\begin{table*}[t]
-  \begin{tabular}{@{}llllll@{}} \toprule
-  \multicolumn{2}{c}{Encoder}&&\multicolumn{2}{c}{MRR}&\\\midrule
-  
-  \multicolumn{1}{c}{Text} & \multicolumn{1}{c}{Code} && \multicolumn{1}{c}{Validation} & \multicolumn{1}{c}{Test} &  \\ \midrule
-  
-  SelfAtt (BERT) & SelfAtt (BERT) && \textbf{0.5800} & \textbf{0.6505} \\
-  ConvSelfAtt & ConvSelfAtt && 0.5604 & 0.5822 \\ 
-  NBoW & NBoW && 0.4708 & 0.6387 \\
-  1D-CNN & 1D-CNN && 0.4753 & 0.5465 \\
-  biRNN & biRNN && 0.5078 & 0.6404\\\midrule
-  ConvSelfAtt & GGNN && \textbf{0.5358} & \textbf{0.5175} \\
-  ConvSelfAtt & RGAT && 0.4431 & 0.3946 \\
-  ConvSelfAtt & GNN-FiLM && 0.4896 & 0.3036 \\
-  ConvSelfAtt & GNN Edge-MLP && 0.506 & 0.3024 \\
-  ConvSelfAtt & RGCN && 0.4147 & 0.2410 \\
-
-  \bottomrule
-  \end{tabular}
-  \caption{Mean Reciprocal Rank (MRR) on Validation and Test Sets of CodeSearchNet Python corpus. As a test, the models try to rank the correct code snippet highly among 999 distractor snippets.} \label{tbl:mrr eval}
-\end{table*}
 
 For the Graph Nodes tokenization, the Python code identifiers are split into sub-tokens using the PEP 8 standard naming conventions,  and each sub-token is further split into BPE sub-tokens using byte-pair encoding~\cite{gage1994new,sennrich2016neural}, similarly to the natural language tokenization. The usage of the additional BPE tokenization improved the accuracy for all different GNNs. The BPE sub-token embeddings are combined using a weighted sum pooling to produce the Graph Node embeddings, and the latter are combined into a sequence embedding using an attention-like weighted max-pooling mechanism. The attention layer contribution was a small, but nevertheless a notable increase of the total accuracy.
 The training \textbf{batch size of 200 Graphs} was found to yield the best results.
@@ -168,14 +147,6 @@ The training \textbf{batch size of 200 Graphs} was found to yield the best resul
 For testing purposes on CodeSearchNet Corpus, a fixed set
 of 999 distractor snippets $c_j$ for each test pair $(c_i
 , d_i)$ was used, tested in all trained models . \autoref{tbl:mrr eval} presents the Mean Reciprocal Rank results on this task for the baseline and all used GNNs.
-
-As reflected in the \autoref{tbl:mrr eval}, GGNN was the best performing GNN. For this reason the formal definition of the GGNN propagation model is repeated here for convenience, as it was originally described in \cite{1511.05493}. 
-
-A notable discrepancy exists between the test and validation results. One possible reason due to the way the data were stratified by the CodeSearchNet competition organizers. Indeed, it seems that the data were not shuffled but stratified by keeping the order that were collected. The competition Corpus is effectively a collection of the most popular Python GitHub repositories, possibly starting from the most popular repositories and continuing in a descending order. One indication of this is the fact that the validation loss increases monotonically during the validation steps of each epoch. This means that as the repositories become less popular, the code "quality" drops, in other words, the noise level increases.
-Also, when plotting the samples loss, there is a clear indication of clusters with similar loss. This could be explained by the fact that the individual samples are functions extracted from each repository and, most probably, the neighbouring functions come from the same repositories that share similar noise levels.
-Based on these assumptions, we can see that the GNNs are more sensitive to the code quality, possibly because better code means much simpler graphs.
-
-This possible issue was reported to the CodeSearchNet repository here:  \url{https://github.com/github/CodeSearchNet/issues/87}
 
 \subsection{GGNN Propagation Model}
 
@@ -256,17 +227,51 @@ function, and $\odot$ is element-wise multiplication. %, and $\noderept{\node_\i
 \label{fig:graphs-and-sparsity}
 \end{figure}
 
+\begin{table*}[t]
+  \begin{tabular}{@{}llllll@{}} \toprule
+  \multicolumn{2}{c}{Encoder}&&\multicolumn{2}{c}{MRR}&\\\midrule
+  
+  \multicolumn{1}{c}{Text} & \multicolumn{1}{c}{Code} && \multicolumn{1}{c}{Validation} & \multicolumn{1}{c}{Test} &  \\ \midrule
+  
+  SelfAtt (BERT) & SelfAtt (BERT) && \textbf{0.5800} & \textbf{0.6505} \\
+  ConvSelfAtt & ConvSelfAtt && 0.5604 & 0.5822 \\ 
+  NBoW & NBoW && 0.4708 & 0.6387 \\
+  1D-CNN & 1D-CNN && 0.4753 & 0.5465 \\
+  biRNN & biRNN && 0.5078 & 0.6404\\\midrule
+  ConvSelfAtt & GGNN && \textbf{0.5358} & \textbf{0.5175} \\
+  ConvSelfAtt & RGAT && 0.4431 & 0.3946 \\
+  ConvSelfAtt & GNN-FiLM && 0.4896 & 0.3036 \\
+  ConvSelfAtt & GNN Edge-MLP && 0.506 & 0.3024 \\
+  ConvSelfAtt & RGCN && 0.4147 & 0.2410 \\
+
+  \bottomrule
+  \end{tabular}
+  \caption{Mean Reciprocal Rank (MRR) on Validation and Test Sets of CodeSearchNet Python corpus. As a test, the models try to rank the correct code snippet highly among 999 distractor snippets.} \label{tbl:mrr eval}
+\end{table*}
+
+\section{Results}
+
+As reflected in the \autoref{tbl:mrr eval}, GGNN was the best performing GNN. For this reason the formal definition of the GGNN propagation model is repeated here for convenience, as it was originally described in \cite{1511.05493}. 
+
+A notable discrepancy exists between the test and validation results. While the MRR decreases in the test results, the MRR increases for the baseline. One possible reason due to the way the data were stratified by the CodeSearchNet competition organizers. Indeed, it seems that the data were not shuffled but stratified by keeping the order that were collected. The competition Corpus is effectively a collection of the most popular Python GitHub repositories, possibly starting from the most popular repositories and continuing in a descending order. One indication of this is the fact that the validation loss increases monotonically during the validation steps of each epoch. This means that as the repositories become less popular, the code "quality" drops, in other words, the noise level increases.
+Also, when plotting the samples loss, as stratified, there is a clear indication of clusters with similar loss. This could be explained by the fact that the individual samples are functions extracted from each repository and, most probably, the neighbouring functions come from the same repositories that share similar noise levels.
+Based on these assumptions, we can see that the GNNs are more sensitive to the code quality, possibly because better code means much simpler graphs.
+
+This possible issue was reported to the CodeSearchNet repository here:  \url{https://github.com/github/CodeSearchNet/issues/87}
 
 \section{Conclusions}
-Overall, the GNN models achieved somewhat good performance on this task, but failed to exceed the BERT-based models which had the best performance. This is not unexpected, as the self-attention model has the highest capacity of all considered models. GGNN had a notable performance, since it was the best performing GNN and for the validation dataset, very close to the top performers, making it a very promising alternative to BERT.
+Overall, the GNN models achieved somewhat good performance on this task, but failed to exceed the BERT-based models which had the best performance. This is not unexpected, as the self-attention model has the highest capacity of all considered models. GGNN had a notable performance, since it was the best performing GNN and for the validation dataset, very close to the top performers, making it a very promising alternative to BERT. Nevertheless, more work is needed around the GNNs sensitivity to noisy data.
 
+Two samples can be found in the Appendices, one with rank 1 \autoref{appendix:good}, and one with the rank 919 \autoref{appendix:bad}. An obvious difference is the fact that the code comment (docstring) of the latter is more elaborate and complex. This complexity has an obvious negative effect in the whey the GNNs encode the information and as an effect, to the final ranking.
+
+\section{Future improvements}
 Possible future improvements are: 
 \begin{itemize}
   \item Better hyper-parameters tuning. Due to time constraints, not all hyper-parameter combinations where thoroughly explored.
   \item Better data shuffling between the data strata.
   \item A richer semantic graph enhancement, by leveraging more static code analysis heuristics. For example, metadata of the identifiers type could be added to the graph nodes.
-  \item Combine the Natural Language information included in the code comments
-  \item Standardize the different programming languages keywords into a common vocabulary to achieve language independent graphs. This would enable more complex tasks.
+  \item Combine the Natural Language information included in the code comments, with a traditional NLP model as a hybrid.
+  \item Include docstring parsers that parse the comments and provide information that can be mapped in the code graph, for example, as metadata of the parameters.
 \end{itemize}
 
 
@@ -275,4 +280,104 @@ The author would like to thank Miltiadis Allamanis, Senior Researcher at Microso
 
 \bibliographystyle{unsrt}  
 \bibliography{references} 
+
+
+
+
+\begin{appendices}
+
+
+\section{Rank 1 sample}
+\label{appendix:good}
+\begin{lstlisting}[language=Python, caption={Sample that ranked first},captionpos=b]
+def get_feature_counts(self, threshold=0.001):
+     """ Returns a dictionary, where the keys are the feature names
+     and the values are the number of studies tagged with the feature. """
+     counts = np.sum(self.get_feature_data() >= threshold, 0)
+     return dict(zip(self.get_feature_names(), list(counts)))
+\end{lstlisting}
+
+\section{Rank 919 sample}
+\label{appendix:bad}
+\begin{lstlisting}[language=Python, caption={Sample that ranked first},captionpos=b]
+def gsea(data, gene_sets, cls, outdir='GSEA_', min_size=15, max_size=500, permutation_num=1000,
+    weighted_score_type=1,permutation_type='gene_set', method='log2_ratio_of_classes',
+     ascending=False, processes=1, figsize=(6.5,6), format='pdf',
+    graph_num=20, no_plot=False, seed=None, verbose=False):
+    """ Run Gene Set Enrichment Analysis.
+    
+    :param data: Gene expression data table, Pandas DataFrame, gct file.
+    :param gene_sets: Enrichr Library name or .gmt gene sets file or dict of gene sets. Same input with GSEA.
+    :param cls: A list or a .cls file format required for GSEA.
+    :param str outdir: Results output directory.
+    :param int permutation_num: Number of permutations for significance computation. Default: 1000.
+    :param str permutation_type: Permutation type, \"phenotype\" for phenotypes, \"gene_set\" for genes.
+    :param int min_size: Minimum allowed number of genes from gene set also the data set. Default: 15.
+    :param int max_size: Maximum allowed number of genes from gene set also the data set. Default: 500.
+    :param float weighted_score_type: Refer to :func:`algorithm.enrichment_score`. Default:1.
+    :param method: The method used to calculate a correlation or ranking. Default: 'log2_ratio_of_classes'.
+    Others methods are:
+    
+    1. 'signal_to_noise'
+    
+    You must have at least three samples for each phenotype to use this metric.
+    The larger the signal-to-noise ratio, the larger the differences of the means (scaled by the standard deviations);
+    that is, the more distinct the gene expression is in each phenotype and the more the gene acts as a “class marker.”
+    
+    2. 't_test'
+    
+    Uses the difference of means scaled by the standard deviation and number of samples.
+    Note: You must have at least three samples for each phenotype to use this metric.
+    The larger the tTest ratio, the more distinct the gene expression is in each phenotype
+    and the more the gene acts as a “class marker.”
+    
+    3. 'ratio_of_classes' (also referred to as fold change).
+    
+    Uses the ratio of class means to calculate fold change for natural scale data.
+    
+    4. 'diff_of_classes'
+    
+    
+    Uses the difference of class means to calculate fold change for nature scale data
+    
+    
+    5. 'log2_ratio_of_classes'
+    
+    Uses the log2 ratio of class means to calculate fold change for natural scale data.
+    This is the recommended statistic for calculating fold change for log scale data.
+    
+    
+    :param bool ascending: Sorting order of rankings. Default: False.
+    :param int processes: Number of Processes you are going to use. Default: 1.
+    :param list figsize: Matplotlib figsize, accept a tuple or list, e.g. [width,height]. Default: [6.5,6].
+    :param str format: Matplotlib figure format. Default: 'pdf'.
+    :param int graph_num: Plot graphs for top sets of each phenotype.
+    :param bool no_plot: If equals to True, no figure will be drawn. Default: False.
+    :param seed: Random seed. expect an integer. Default:None.
+    :param bool verbose: Bool, increase output verbosity, print out progress of your job, Default: False.
+    
+    :return: Return a GSEA obj. All results store to a dictionary, obj.results,
+    where contains::
+    
+    | {es: enrichment score,
+    | nes: normalized enrichment score,
+    | p: P-value,
+    | fdr: FDR,
+    | size: gene set size,
+    | matched_size: genes matched to the data,
+    | genes: gene names from the data set
+    | ledge_genes: leading edge genes}
+    
+    
+    """
+    gs = GSEA(data, gene_sets, cls, outdir, min_size, max_size, permutation_num,
+    weighted_score_type, permutation_type, method, ascending, processes,
+    figsize, format, graph_num, no_plot, seed, verbose)
+    gs.run()
+    
+    return gs
+
+\end{lstlisting}
+
+\end{appendices}
 \end{document}
