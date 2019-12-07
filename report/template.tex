@@ -260,9 +260,10 @@ Based on these assumptions, we can see that the GNNs are more sensitive to the c
 This possible issue was reported to the CodeSearchNet repository here:  \url{https://github.com/github/CodeSearchNet/issues/87}
 
 \section{Conclusions}
+\label{ssec:conclusions}
 Overall, the GNN models achieved somewhat good performance on this task, but failed to exceed the BERT-based models which had the best performance. This is not unexpected, as the self-attention model has the highest capacity of all considered models. GGNN had a notable performance, since it was the best performing GNN and for the validation dataset, very close to the top performers, making it a very promising alternative to BERT. Nevertheless, more work is needed around the GNNs sensitivity to noisy data.
 
-Two samples can be found in the Appendices, \autoref{appendix:good} with GGNN rank 1, and \autoref{appendix:bad} with GGNN rank 919 (1 and 272 respectively in ConvSelfAtt). An obvious difference is the fact that the docstring of the latter is more elaborate and complex. This complexity has an obvious negative effect in the whey the GNNs encode the information and as an effect, to the final ranking.
+Two samples can be found in the Appendix \autoref{appendix:good} with GGNN rank 1, and Appendix \autoref{appendix:bad} with GGNN rank 919 (1 and 272 respectively in ConvSelfAtt). An obvious difference is the fact that the docstring of the latter is more elaborate and complex. This has an obvious negative effect in the way the GNNs operate and as an effect, to the final ranking. Specifically, one possible reason is the \textbf{Graph Imbalance}. Intuitively, we can imagine a graph that has a single node containing the majority of the information and not equally distributed in the entire graph, does not allow the propagation equations (1) - (6) to leverage all learned parameters, and saturates the topical weights. On the other hand, Sequence-based NNs will not suffer by the same phenomenon. In the Euclidean geometric data space, we can think of this problem as if we had a picture that contains most of the related features in a small area of just a few pixels.
 
 \section{Future improvements}
 Possible future improvements are: 
@@ -271,7 +272,7 @@ Possible future improvements are:
   \item Better data shuffling between the data strata.
   \item A richer semantic graph enhancement, by leveraging more static code analysis heuristics. For example, metadata of the identifiers type could be added to the graph nodes.
   \item Combine the Natural Language information included in the code comments, with a traditional NLP model as a hybrid.
-  \item Include docstring parsers that parse the comments and provide information that can be mapped in the code graph, for example, as metadata of the function arguments.
+  \item Employ graph re-balancing techniques, like heavy nodes pruning, to overcome the Graph Imbalance impediment, as discussed in \autoref{ssec:conclusions}
 \end{itemize}
 
 
