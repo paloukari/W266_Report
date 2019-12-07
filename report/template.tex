@@ -262,7 +262,7 @@ This possible issue was reported to the CodeSearchNet repository here:  \url{htt
 \section{Conclusions}
 Overall, the GNN models achieved somewhat good performance on this task, but failed to exceed the BERT-based models which had the best performance. This is not unexpected, as the self-attention model has the highest capacity of all considered models. GGNN had a notable performance, since it was the best performing GNN and for the validation dataset, very close to the top performers, making it a very promising alternative to BERT. Nevertheless, more work is needed around the GNNs sensitivity to noisy data.
 
-Two samples can be found in the Appendices, one with rank 1 \autoref{appendix:good}, and one with the rank 919 \autoref{appendix:bad}. An obvious difference is the fact that the code comment (docstring) of the latter is more elaborate and complex. This complexity has an obvious negative effect in the whey the GNNs encode the information and as an effect, to the final ranking.
+Two samples can be found in the Appendices, \autoref{appendix:good} with GGNN rank 1, and \autoref{appendix:bad} with GGNN rank 919 (1 and 272 respectively in ConvSelfAtt). An obvious difference is the fact that the docstring of the latter is more elaborate and complex. This complexity has an obvious negative effect in the whey the GNNs encode the information and as an effect, to the final ranking.
 
 \section{Future improvements}
 Possible future improvements are: 
@@ -271,7 +271,7 @@ Possible future improvements are:
   \item Better data shuffling between the data strata.
   \item A richer semantic graph enhancement, by leveraging more static code analysis heuristics. For example, metadata of the identifiers type could be added to the graph nodes.
   \item Combine the Natural Language information included in the code comments, with a traditional NLP model as a hybrid.
-  \item Include docstring parsers that parse the comments and provide information that can be mapped in the code graph, for example, as metadata of the parameters.
+  \item Include docstring parsers that parse the comments and provide information that can be mapped in the code graph, for example, as metadata of the function arguments.
 \end{itemize}
 
 
